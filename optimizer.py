@@ -1,6 +1,6 @@
 import torch
 
-def configure_optimizers(model, weight_decay, learning_rate, betas, eps):
+def configure_adamw(model, weight_decay, learning_rate, betas, eps):
     """Replicates the split_decay logic for AdamW."""
     decay = set()
     no_decay = set()
@@ -18,3 +18,7 @@ def configure_optimizers(model, weight_decay, learning_rate, betas, eps):
     ]
 
     return torch.optim.AdamW(param_groups, lr=learning_rate, betas=betas, eps=eps)
+
+def configure_sgd(model, learning_rate, momentum):
+    """Configures standard SGD with Momentum."""
+    return torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
