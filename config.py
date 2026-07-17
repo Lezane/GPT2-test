@@ -9,7 +9,7 @@ SEED = 42  # Seed to ensure AdamW and SGD start from the exact same weights
 
 # Training Settings
 TARGET_LENGTH = 1024
-STEPS = 5000
+STEPS = 1000
 MAJOR_VOCAB_FRAC = 0.9  # Top 90% most common words
 
 # AdamW Parameters (Matched to gpt2small_wt103.py)
@@ -24,7 +24,7 @@ ADAM_WEIGHT_DECAY = 0.01
 # SGD Parameters (Matched to gpt2small_wt103.py for 1GPU)
 SGD_TRAIN_BATCH_SIZE = 32
 SGD_GRADIENT_ACC_STEPS = 16
-SGD_LEARNING_RATE = 0.1 # Exponent Fraction(-1, 1) mapping from standard grids = 10^-1
+SGD_LEARNING_RATE = 0.01 # Exponent Fraction(-1, 1) mapping from standard grids = 10^-1
 SGD_MOMENTUM = 0.9
 
 # Hardware Setup
