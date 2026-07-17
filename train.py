@@ -69,7 +69,17 @@ def run_experiment(optim_type, train_file, sp, vocab_size):
         log_file.write(f"Starting {optim_type} Training Log...\n")
         log_file.write("========================\n")
         
-        for batch_idx, (inputs, labels) in enumerate(train_loader):
+        # Fix: Infinite Step Loop
+        train_iter = iter(train_loader)
+        batch_idx = 0
+        
+        while step_count < cfg.STEPS:
+            try:
+                inputs, labels = next(train_iter)
+            except StopIteration:
+                train_iter = iter(train_loader) # Restart dataset (Epoch 2)
+                inputs, labels = next(train_iter)
+
             inputs, labels = inputs.to(cfg.DEVICE), labels.to(cfg.DEVICE)
             
             logits = model(inputs)
@@ -128,6 +138,9 @@ def run_experiment(optim_type, train_file, sp, vocab_size):
                 if step_count >= cfg.STEPS:
                     print(f"Training complete for {optim_type}. Logs saved to {log_file_path}")
                     break
+            
+            # Increment batch index manually for gradient accumulation tracking
+            batch_idx += 1
                 
     # Memory wipeout before running the next identical parallel sequential experiment
     del model, optimizer, train_loader, train_dataset
