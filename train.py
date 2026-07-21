@@ -10,10 +10,10 @@ from torch.utils.data import DataLoader
 import config as cfg
 from dataset import download_wikitext103, train_sentencepiece_model, SentencePieceWikiTextDataset
 from model import SimpleGPT
-from optimizer import configure_adamw, configure_sgd
+from optimizer import configure_adamw, configure_sgd, configure_muon
 
 def set_seed(seed):
-    """Ensures exact reproducible initialization between AdamW and SGD runs."""
+    """Ensures exact reproducible initialization between AdamW, SGD, and Muon runs."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -27,9 +27,14 @@ def run_experiment(optim_type, train_file, sp, vocab_size):
     if optim_type == "AdamW":
         batch_size = cfg.ADAM_TRAIN_BATCH_SIZE
         grad_acc_steps = cfg.ADAM_GRADIENT_ACC_STEPS
-    else:  # SGD
+    elif optim_type == "SGD":
         batch_size = cfg.SGD_TRAIN_BATCH_SIZE
         grad_acc_steps = cfg.SGD_GRADIENT_ACC_STEPS
+    elif optim_type == "Muon":
+        batch_size = cfg.MUON_TRAIN_BATCH_SIZE
+        grad_acc_steps = cfg.MUON_GRADIENT_ACC_STEPS
+    else:
+        raise ValueError(f"Unknown optimizer: {optim_type}")
 
     train_dataset = SentencePieceWikiTextDataset(train_file, sp, cfg.TARGET_LENGTH)
     train_loader = DataLoader(train_dataset, batch_size=batch_size)
@@ -45,9 +50,19 @@ def run_experiment(optim_type, train_file, sp, vocab_size):
             model, weight_decay=cfg.ADAM_WEIGHT_DECAY, learning_rate=cfg.ADAM_LEARNING_RATE,
             betas=(cfg.ADAM_BETA1, cfg.ADAM_BETA2), eps=cfg.ADAM_EPS
         )
-    else:
+    elif optim_type == "SGD":
         optimizer = configure_sgd(
             model, learning_rate=cfg.SGD_LEARNING_RATE, momentum=cfg.SGD_MOMENTUM
+        )
+    elif optim_type == "Muon":
+        optimizer = configure_muon(
+            model, 
+            muon_lr=cfg.MUON_LEARNING_RATE, 
+            muon_momentum=cfg.MUON_MOMENTUM,
+            adamw_lr=cfg.ADAM_LEARNING_RATE, 
+            adamw_betas=(cfg.ADAM_BETA1, cfg.ADAM_BETA2), 
+            adamw_eps=cfg.ADAM_EPS, 
+            adamw_wd=cfg.ADAM_WEIGHT_DECAY
         )
 
     # Use reduction='none' so we can split unreduced losses by vocabulary subsets mathematically safely
@@ -163,6 +178,9 @@ def main():
     
     print("\nRunning SGD Experiment...")
     run_experiment("SGD", train_file, sp, vocab_size)
+
+    print("\nRunning Muon Experiment...")
+    run_experiment("Muon", train_file, sp, vocab_size)
     
     print("\nAll experiments complete.")
 
