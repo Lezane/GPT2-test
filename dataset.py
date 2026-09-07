@@ -3,7 +3,7 @@ import urllib.request
 import tarfile
 import torch
 from torch.utils.data import IterableDataset
-import sentencepiece as spm
+from tokenizers import ByteLevelBPETokenizer
 
 def download_wikitext103(dataset_dir="wikitext-103", tgz_path="wikitext-103.tgz"):
     if not os.path.exists(dataset_dir):
@@ -16,23 +16,32 @@ def download_wikitext103(dataset_dir="wikitext-103", tgz_path="wikitext-103.tgz"
                 tar_ref.extractall(".")
     return os.path.join(dataset_dir, "train.csv")
 
-def train_sentencepiece_model(text_file, vocab_size=32000, model_prefix="spm_wt103"):
-    if not os.path.exists(f"{model_prefix}.model"):
-        print("Training SentencePiece model...")
-        spm.SentencePieceTrainer.train(
-            input=text_file,
-            model_prefix=model_prefix,
+def train_bpe_model(text_file, vocab_size=32000, model_prefix="bpe_wt103"):
+    vocab_file = f"{model_prefix}-vocab.json"
+    merges_file = f"{model_prefix}-merges.txt"
+    
+    # Train only if the tokenizer files don't already exist
+    if not (os.path.exists(vocab_file) and os.path.exists(merges_file)):
+        print("Training BPE model...")
+        tokenizer = ByteLevelBPETokenizer()
+        
+        # Train BPE using your specific dataset
+        tokenizer.train(
+            files=[text_file],
             vocab_size=vocab_size,
-            pad_id=0, unk_id=1, bos_id=2, eos_id=3
+            min_frequency=2,
+            special_tokens=["<pad>", "<unk>", "<s>", "</s>"]
         )
-    sp = spm.SentencePieceProcessor()
-    sp.load(f"{model_prefix}.model")
-    return sp
+        tokenizer.save_model(".", model_prefix)
+    
+    # Load and return the tokenizer
+    tokenizer = ByteLevelBPETokenizer(vocab_file, merges_file)
+    return tokenizer
 
-class SentencePieceWikiTextDataset(IterableDataset):
-    def __init__(self, file_path, sp_processor, tgt_len):
+class BPEWikiTextDataset(IterableDataset):
+    def __init__(self, file_path, tokenizer, tgt_len):
         self.file_path = file_path
-        self.sp = sp_processor
+        self.tokenizer = tokenizer
         self.tgt_len = tgt_len
 
     def __iter__(self):
@@ -41,7 +50,9 @@ class SentencePieceWikiTextDataset(IterableDataset):
             for line in f:
                 text = line.strip()
                 if not text: continue
-                buffer.extend(self.sp.encode_as_ids(text))
+                
+                # tokenizer.encode() returns an Encoding object; .ids extracts the list of integer token IDs
+                buffer.extend(self.tokenizer.encode(text).ids)
 
                 while len(buffer) >= self.tgt_len + 1:
                     chunk = buffer[:self.tgt_len + 1]
