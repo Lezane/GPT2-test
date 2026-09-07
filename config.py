@@ -15,7 +15,7 @@ MAJOR_VOCAB_FRAC = 0.95  # Top 90% most common words
 # AdamW Parameters (Matched to gpt2small_wt103.py)
 ADAM_TRAIN_BATCH_SIZE = 32
 ADAM_GRADIENT_ACC_STEPS = 16
-ADAM_LEARNING_RATE = 1e-4
+ADAM_LEARNING_RATE = 5e-4
 ADAM_BETA1 = 0.9
 ADAM_BETA2 = 0.95
 ADAM_EPS = 1e-8
