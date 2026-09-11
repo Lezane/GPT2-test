@@ -5,7 +5,7 @@ INIT_STD = 0.02
 DEPTH = 12
 NUM_HEADS = 12
 EMB_DIM = 768
-SEED = 43  # Seed to ensure all optimizers start from the exact same weights
+SEED = 42  # Seed to ensure all optimizers start from the exact same weights
 
 # Training Settings
 TARGET_LENGTH = 1024
