@@ -5,11 +5,11 @@ INIT_STD = 0.02
 DEPTH = 12
 NUM_HEADS = 12
 EMB_DIM = 768
-SEED = 42  # Seed to ensure all optimizers start from the exact same weights
+SEED = 43  # Seed to ensure all optimizers start from the exact same weights
 
 # Training Settings
 TARGET_LENGTH = 1024
-STEPS = 100
+STEPS = 2000
 MAJOR_VOCAB_FRAC = 0.95  # Top 95% most common words
 
 # AdamW Parameters (Matched to gpt2small_wt103.py)
