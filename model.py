@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import math
 
-INIT_STD = 0.02
+from config import INIT_STD
 
 class SimpleGPT(nn.Module):
     def __init__(self, vocab_size, emb_dim, num_heads, depth, max_seq_len=2048):
@@ -38,6 +38,16 @@ class SimpleGPT(nn.Module):
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=base_std)
+        elif isinstance(module, nn.MultiheadAttention):
+            # Q/K/V are raw parameters, not nn.Linear child modules.
+            # Initialize each cloned layer independently during self.apply().
+            if module.in_proj_weight is not None:
+                torch.nn.init.normal_(module.in_proj_weight, mean=0.0, std=base_std)
+            else:
+                for weight in (module.q_proj_weight, module.k_proj_weight, module.v_proj_weight):
+                    torch.nn.init.normal_(weight, mean=0.0, std=base_std)
+            if module.in_proj_bias is not None:
+                torch.nn.init.zeros_(module.in_proj_bias)
 
     def _apply_residual_scaling(self):
         """Applies the optexp depth scaling specifically to residual projections."""
