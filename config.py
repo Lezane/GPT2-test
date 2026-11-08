@@ -12,7 +12,7 @@ TARGET_LENGTH = 1024
 STEPS = 2000
 MAJOR_VOCAB_FRAC = 0.95  # Most frequent 95% of observed, non-special token types
 
-# AdamW Parameters (Matched to gpt2small_wt103.py)
+# AdamW Parameters 
 ADAM_TRAIN_BATCH_SIZE = 16
 ADAM_GRADIENT_ACC_STEPS = 32
 ADAM_LEARNING_RATE = 5e-4
@@ -21,10 +21,10 @@ ADAM_BETA2 = 0.95
 ADAM_EPS = 1e-8
 ADAM_WEIGHT_DECAY = 0.01
 
-# SGD Parameters (Matched to gpt2small_wt103.py for 1GPU)
+# SGD Parameters 
 SGD_TRAIN_BATCH_SIZE = 16
 SGD_GRADIENT_ACC_STEPS = 32
-SGD_LEARNING_RATE = 0.02 # Exponent Fraction(-1, 1) mapping from standard grids = 10^-1
+SGD_LEARNING_RATE = 0.02 
 SGD_MOMENTUM = 0.9
 
 # Muon Parameters
